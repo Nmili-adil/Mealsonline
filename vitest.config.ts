@@ -22,6 +22,9 @@ export default defineConfig({
     env: {
       DATABASE_URL: "file:./test.db",
       CAISSE212_MODE: "mock",
+      CAISSE212_STOREFRONT_MODE: "fixtures",
+      CAISSE212_STOREFRONT_SLUG: "mealsonline",
+      CAISSE212_STOREFRONT_ORDERING_ENABLED: "true",
       AUTH_SECRET: "test-secret",
       CAISSE212_WEBHOOK_SECRET: "test-webhook-secret",
       NEXT_PUBLIC_APP_URL: "http://localhost:3000",

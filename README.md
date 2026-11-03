@@ -15,7 +15,7 @@ Framer Motion · Phosphor icons · Vitest.
 
 ```bash
 npm install
-cp .env.example .env        # CAISSE212_MODE=mock by default
+cp .env.example .env        # CAISSE212_MODE=mock + Storefront fixtures by default
 npm run db:migrate          # create SQLite dev.db + migration
 npm run db:seed             # default restaurant + admin + mock catalog import
 npm run dev                 # http://localhost:3000
@@ -35,7 +35,7 @@ Initial admin (from seed): `admin@mealsonline.ma` / `ChangeMe123!`
 
 | Public | Admin |
 | ------ | ----- |
-| `/` landing · `/menu` · `/menu/[slug]` · `/cart` · `/checkout` · `/orders/[reference]` · `/about` · `/contact` · `/privacy` · `/terms` | `/admin` · `/admin/products` · `/admin/categories` · `/admin/orders` · `/admin/sync` · `/admin/pages` · `/admin/media` · `/admin/settings` · `/admin/integrations` · `/admin/audit-logs` |
+| `/` landing · `/menu` · `/menu/[slug]` · `/cart` · `/checkout` · `/orders/[reference]` · `/about` · `/contact` · `/privacy` · `/terms` | `/admin` · `/admin/products` · `/admin/categories` · `/admin/orders` · `/admin/websites` · `/admin/websites/new` · `/admin/websites/[id]/edit` · `/admin/sync` · `/admin/pages` · `/admin/media` · `/admin/settings` · `/admin/integrations` · `/admin/audit-logs` |
 
 ## Scripts
 
@@ -50,7 +50,27 @@ npm run db:seed        # seed dev fixtures + initial admin
 npm run worker         # outbox worker (order submission + reconciliation)
 npm run sync-worker    # scheduled catalog sync
 npm test               # unit + integration tests (SQLite test.db)
+npm run e2e            # Playwright browser flows (run `npm run build` first)
 ```
+
+## Storefront V206 (public website content)
+
+The public website consumes the Caisse212 **Storefront V206** contract:
+
+- `CAISSE212_STOREFRONT_MODE=off` keeps the legacy DB-driven menu.
+- `fixtures` (default in development) renders local fixtures with a visible
+  demo banner; admin changes are reflected immediately.
+- `live` calls the real public endpoints and the authenticated storefront
+  admin endpoints. Live admin calls require server-only
+  `CAISSE212_ADMIN_TOKEN`, `CAISSE212_TENANT_ID`, `CAISSE212_BUSINESS_ID`;
+  without them the admin reports the blocker instead of faking a session.
+
+Dynamic theming, collections (absent vs empty), hidden products, display
+overrides, ordering-enabled enforcement, saved/draft preview and unknown-key
+preservation are implemented. The V206 ordering/tracking payload schemas are
+not published, so checkout and tracking keep the website's documented order
+integration; see `docs/STOREFRONT_V206.md` for confirmed vs assumed vs blocked
+behaviour and the live id-mapping assumption.
 
 ## Caisse212 integration
 
@@ -73,6 +93,7 @@ npm test               # unit + integration tests (SQLite test.db)
 - `docs/DEPLOYMENT.md`
 - `docs/TESTING.md`
 - `docs/INTEGRATION_HANDOFF.md`
+- `docs/STOREFRONT_V206.md` (public storefront config/menu/admin integration)
 
 ## Production
 

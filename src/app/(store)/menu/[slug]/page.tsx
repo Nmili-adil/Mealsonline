@@ -4,6 +4,13 @@ import { prisma } from "@/lib/prisma";
 import { ProductDetailClient } from "@/components/menu/ProductDetailClient";
 import { jsonParse } from "@/lib/utils";
 import type { MenuProduct } from "@/types/menu";
+import {
+  getConfiguredStorefrontConfig,
+  getPublicStorefrontProduct,
+} from "@/lib/caisse212/storefront/public";
+import { getStorefrontMode } from "@/lib/caisse212/storefront/mode";
+import { storefrontErrorMessage } from "@/lib/caisse212/storefront/errors";
+import { storefrontDetailToMenuProduct } from "@/lib/storefront/to-menu";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +20,23 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
+
+  if (getStorefrontMode() !== "off") {
+    const id = Number(slug);
+    if (!Number.isInteger(id)) return { title: "Produit" };
+    try {
+      const config = await getConfiguredStorefrontConfig();
+      if (!config) return { title: "Produit" };
+      const detail = await getPublicStorefrontProduct(config.menuCode, id);
+      return {
+        title: detail?.name ?? "Produit",
+        description: detail?.description ?? "Détails du produit",
+      };
+    } catch {
+      return { title: "Produit" };
+    }
+  }
+
   const product = await prisma.product.findFirst({
     where: { slug, archived: false },
     select: { name: true, description: true },
@@ -29,6 +53,35 @@ export default async function ProductDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
+
+  if (getStorefrontMode() !== "off") {
+    const id = Number(slug);
+    if (!Number.isInteger(id) || id <= 0) notFound();
+
+    try {
+      const config = await getConfiguredStorefrontConfig();
+      if (!config) notFound();
+      const detail = await getPublicStorefrontProduct(config.menuCode, id);
+      if (!detail || detail.variants.length === 0) notFound();
+
+      return (
+        <ProductDetailClient
+          product={storefrontDetailToMenuProduct(detail)}
+          orderingEnabled={config.orderingEnabled}
+        />
+      );
+    } catch (error) {
+      return (
+        <div className="page-width" style={{ padding: "60px 0" }}>
+          <div className="empty-state">
+            <h3>Produit momentanément indisponible</h3>
+            <p>{storefrontErrorMessage(error)}</p>
+          </div>
+        </div>
+      );
+    }
+  }
+
   const product = await prisma.product.findFirst({
     where: { slug, archived: false },
     include: {

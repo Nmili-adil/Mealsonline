@@ -17,6 +17,9 @@ npm run typecheck  # strict TypeScript
 npm run build      # production build (also catches route/type issues)
 ```
 
+Latest verified run: **64 Vitest tests across 12 files**, **4/4 Playwright
+E2E tests**, `tsc --noEmit` clean, production build green.
+
 ## What is covered
 
 ### Unit tests
@@ -27,6 +30,9 @@ npm run build      # production build (also catches route/type issues)
 | `tests/unit/validation.test.ts` | phone normalization, checkout schemas |
 | `tests/unit/transitions.test.ts` | allowed/invalid/idempotent status transitions |
 | `tests/unit/webhook-signature.test.ts` | HMAC verification, timestamp freshness |
+| `tests/unit/storefront-validation.test.ts` | storefront slug/origin/256 KB/section/override rules, unknown-key preservation |
+| `tests/unit/storefront-menu.test.ts` | collections absent/empty/custom, ordering, dedupe, hidden products, overrides, product detail |
+| `tests/unit/storefront-roles.test.ts` | ADMIN/SUPER_ADMIN storefront permission rule |
 
 ### Integration tests
 
@@ -36,6 +42,7 @@ npm run build      # production build (also catches route/type issues)
 | `tests/integration/checkout-outbox.test.ts` | stale-price rejection, unavailable product, accepted flow, POS idempotency, offline never confirms |
 | `tests/integration/timeout-recovery.test.ts` | ambiguous timeout reconciled via external-ID lookup |
 | `tests/integration/webhook-dedupe.test.ts` | duplicate webhook applied once, invalid transition rejected |
+| `tests/integration/storefront-fixtures.test.ts` | public config/menu, inactive 404, admin CRUD/version/soft delete/slug reuse, invalid ids, price override rejection, per-site isolation, checkout id bridge |
 
 ### Explicit acceptance checks
 
@@ -68,9 +75,11 @@ Specs (`e2e/`):
 
 | File | Covers |
 | ---- | ------ |
-| `menu-cart.spec.ts` | browse menu, brand filter, product customization, cart edit |
+| `menu-cart.spec.ts` | homepage + storefront banner, collection filter, product customization, cart edit |
 | `checkout-tracking.spec.ts` | add to cart, checkout, tracking until POS acceptance (spawns the outbox worker) |
 | `admin.spec.ts` | admin login, manual catalog import |
+| `admin-websites.spec.ts` | create a website, custom-section toggle, full PUT version bump, list refresh |
 
-The E2E server runs `next start` with `CAISSE212_ALLOW_MOCK_IN_PROD=true`
-(explicit test-only opt-in; normal production still refuses mock mode).
+The E2E server runs `next start` with `CAISSE212_ALLOW_MOCK_IN_PROD=true` and
+`CAISSE212_ALLOW_STOREFRONT_FIXTURES_IN_PROD=true` (explicit test-only opt-ins;
+normal production still refuses mock and fixtures modes).

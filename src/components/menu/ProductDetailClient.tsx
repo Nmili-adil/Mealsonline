@@ -9,7 +9,13 @@ import { QuantityControl } from "@/components/ui/QuantityControl";
 import { useCartStore } from "@/store/cart-store";
 import { formatMAD } from "@/lib/money";
 
-export function ProductDetailClient({ product }: { product: MenuProduct }) {
+export function ProductDetailClient({
+  product,
+  orderingEnabled = true,
+}: {
+  product: MenuProduct;
+  orderingEnabled?: boolean;
+}) {
   const addLine = useCartStore((state) => state.addLine);
   const defaultVariant =
     product.variants.find((variant) => variant.isDefault) ?? product.variants[0];
@@ -62,6 +68,10 @@ export function ProductDetailClient({ product }: { product: MenuProduct }) {
 
   const handleAdd = () => {
     if (!selectedVariant) return;
+    if (!orderingEnabled) {
+      setError("Les commandes en ligne sont momentanément désactivées.");
+      return;
+    }
     if (!product.caisseAvailable) {
       setError("Ce produit est momentanément indisponible.");
       return;
@@ -203,15 +213,25 @@ export function ProductDetailClient({ product }: { product: MenuProduct }) {
             <span>Total</span>
             <span>{formatMAD(unitPrice * quantity)}</span>
           </div>
-          <button
-            type="button"
-            className="button"
-            style={{ width: "100%", marginTop: 18 }}
-            onClick={handleAdd}
-            disabled={!product.caisseAvailable}
-          >
-            Ajouter au panier <ArrowRight weight="bold" aria-hidden="true" />
-          </button>
+          {orderingEnabled ? (
+            <button
+              type="button"
+              className="button"
+              style={{ width: "100%", marginTop: 18 }}
+              onClick={handleAdd}
+              disabled={!product.caisseAvailable}
+            >
+              Ajouter au panier <ArrowRight weight="bold" aria-hidden="true" />
+            </button>
+          ) : (
+            <p
+              className="price-change-banner"
+              style={{ marginTop: 18, fontSize: 13, lineHeight: 1.5 }}
+            >
+              Les commandes en ligne sont momentanément désactivées. Le menu reste
+              consultable.
+            </p>
+          )}
           {!product.caisseAvailable ? (
             <p className="product-unavailable" style={{ marginTop: 10 }}>Produit indisponible</p>
           ) : null}

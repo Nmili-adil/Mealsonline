@@ -14,14 +14,17 @@ import {
   Plug,
   Scroll,
   SignOut,
+  Globe,
 } from "@phosphor-icons/react";
 import { useAdmin } from "./AdminProvider";
+import { canManageStorefronts } from "@/lib/caisse212/storefront/roles";
 
 const NAV_ITEMS = [
   { href: "/admin", label: "Vue d'ensemble", icon: ChartBar },
   { href: "/admin/products", label: "Produits", icon: Package },
   { href: "/admin/categories", label: "Catégories", icon: Tag },
   { href: "/admin/orders", label: "Commandes", icon: Receipt },
+  { href: "/admin/websites", label: "Sites web", icon: Globe },
   { href: "/admin/sync", label: "Synchronisation", icon: ArrowsClockwise },
   { href: "/admin/pages", label: "Contenu du site", icon: FileText },
   { href: "/admin/media", label: "Médias", icon: ImageSquare },
@@ -34,6 +37,10 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { admin } = useAdmin();
+  const canManageSites = canManageStorefronts(admin.role);
+  const visibleNav = NAV_ITEMS.filter(
+    (item) => item.href !== "/admin/websites" || canManageSites,
+  );
 
   const logout = async () => {
     await fetch("/api/admin/logout", { method: "POST" });
@@ -44,7 +51,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="admin-shell">
       <aside className="admin-sidebar">
-        {NAV_ITEMS.map((item) => {
+        {visibleNav.map((item) => {
           const Icon = item.icon;
           const active =
             item.href === "/admin" ? pathname === "/admin" : pathname.startsWith(item.href);

@@ -1,8 +1,16 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { MenuExplorer } from "@/components/menu/MenuExplorer";
+import { StorefrontMenuExplorer } from "@/components/menu/StorefrontMenuExplorer";
 import { jsonParse } from "@/lib/utils";
 import type { MenuProduct } from "@/types/menu";
+import {
+  getConfiguredStorefrontConfig,
+  getConfiguredStorefrontMenu,
+} from "@/lib/caisse212/storefront/public";
+import { getStorefrontMode } from "@/lib/caisse212/storefront/mode";
+import { storefrontErrorMessage } from "@/lib/caisse212/storefront/errors";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +25,41 @@ export default async function MenuPage({
 }: {
   searchParams: Promise<{ brand?: string }>;
 }) {
+  if (getStorefrontMode() !== "off") {
+    try {
+      const [config, menu] = await Promise.all([
+        getConfiguredStorefrontConfig(),
+        getConfiguredStorefrontMenu(),
+      ]);
+      if (!config || !menu) notFound();
+
+      return (
+        <div className="page-width">
+          <div className="page-head">
+            <h1>Notre menu</h1>
+            <p>
+              {config.data.texts?.heroSubtitle ??
+                "Parcourez les sections du restaurant et composez votre commande. Les prix sont ceux du restaurant."}
+            </p>
+          </div>
+          <StorefrontMenuExplorer
+            collections={menu.collections}
+            orderingEnabled={menu.orderingEnabled}
+          />
+        </div>
+      );
+    } catch (error) {
+      return (
+        <div className="page-width" style={{ padding: "60px 0" }}>
+          <div className="empty-state">
+            <h3>Menu momentanément indisponible</h3>
+            <p>{storefrontErrorMessage(error)}</p>
+          </div>
+        </div>
+      );
+    }
+  }
+
   const { brand } = await searchParams;
 
   const [brands, categories, products] = await Promise.all([

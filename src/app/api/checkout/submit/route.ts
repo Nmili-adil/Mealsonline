@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { checkoutSubmitSchema } from "@/lib/validation/schemas";
 import { createPendingOrder } from "@/lib/orders/create-order";
+import {
+  resolveStorefrontCheckoutInput,
+  storefrontOrderingAllowed,
+} from "@/lib/storefront/cart-bridge";
 
 export const dynamic = "force-dynamic";
 
@@ -32,7 +36,23 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const result = await createPendingOrder(input);
+  const ordering = await storefrontOrderingAllowed();
+  if (!ordering.ok) {
+    return NextResponse.json(
+      { ok: false, code: "ordering_disabled", message: ordering.message },
+      { status: 403 },
+    );
+  }
+
+  const resolved = await resolveStorefrontCheckoutInput(input);
+  if (!resolved.ok) {
+    return NextResponse.json(
+      { ok: false, code: "product_unavailable", message: resolved.message },
+      { status: 409 },
+    );
+  }
+
+  const result = await createPendingOrder(resolved.input);
   if (!result.ok) {
     return NextResponse.json(
       {

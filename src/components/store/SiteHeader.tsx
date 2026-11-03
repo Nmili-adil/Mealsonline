@@ -1,19 +1,27 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { List, X } from "@phosphor-icons/react";
 import { CartButton } from "./CartButton";
 
-export function SiteHeader() {
+export function SiteHeader({
+  logoSrc,
+  restaurantName,
+}: {
+  logoSrc?: string | null;
+  restaurantName?: string | null;
+} = {}) {
   const [open, setOpen] = useState(false);
+  const logo = logoSrc || "/images/logo-mealsonline-clean.png";
+  const name = restaurantName || "MealsOnline";
 
   return (
     <header className="store-header">
       <div className="store-header-inner page-width">
-        <Link href="/" className="store-logo" aria-label="MealsOnline, accueil">
-          <Image src="/images/logo-mealsonline-clean.png" alt="MealsOnline" width={150} height={48} />
+        <Link href="/" className="store-logo" aria-label={`${name}, accueil`}>
+          {/* eslint-disable-next-line @next/next/no-img-element -- storefront logo may be any configured URL */}
+          <img src={logo} alt={name} width={150} height={48} style={{ objectFit: "contain" }} />
         </Link>
 
         <nav className="store-nav" aria-label="Navigation">

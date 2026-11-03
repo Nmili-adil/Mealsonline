@@ -21,7 +21,20 @@ CAISSE212_BASE_URL="https://pos.example.com"
 CAISSE212_CLIENT_ID="..."
 CAISSE212_CLIENT_SECRET="..."
 CAISSE212_WEBHOOK_SECRET="<openssl rand -hex 32>"
+
+# Storefront V206
+CAISSE212_STOREFRONT_MODE="live"
+CAISSE212_STOREFRONT_SLUG="your-restaurant-slug"
+# Server-only authenticated storefront admin integration (ADMIN/SUPER_ADMIN):
+CAISSE212_ADMIN_TOKEN="..."
+CAISSE212_TENANT_ID="..."
+CAISSE212_BUSINESS_ID="..."
 ```
+
+`CAISSE212_STOREFRONT_MODE=fixtures` is refused in production. If the admin
+credentials are absent, the public site still works in live mode but
+`/admin/websites` shows the missing-variable blocker. Never expose the admin
+token through `NEXT_PUBLIC_*`. See `docs/STOREFRONT_V206.md`.
 
 Switch `prisma/schema.prisma` to `provider = "mysql"`.
 
@@ -109,3 +122,5 @@ orders table (they are written transactionally).
 - [ ] Web, outbox worker, sync worker supervised
 - [ ] HTTPS + domain + webhook URL shared with the Caisse212 partner
 - [ ] Mock mode disabled (`CAISSE212_MODE=live`)
+- [ ] Storefront mode set to `live` (fixtures refused) and admin credentials present
+- [ ] Storefront public slug points at the real website configuration

@@ -33,6 +33,20 @@
   public endpoint with a default password.
 - Audit logs record admin actions (with IP hash, not raw IP).
 
+## Storefront management
+
+- Requires the website admin session **and** an ADMIN/SUPER_ADMIN role; pages
+  redirect operators and storefront API routes return 403.
+- All mutations require the double-submit CSRF token and an accepted
+  Origin/Referer.
+- Caisse212 admin credentials (`CAISSE212_ADMIN_TOKEN`, tenant, business) are
+  server-only and are never exposed through `NEXT_PUBLIC_*`. Without them the
+  live admin reports a blocker instead of inventing a login flow.
+- The public `data` object is public by design; never store secrets there.
+  Dynamic theme values are validated (hex colors, http(s) logo URLs) before
+  being applied.
+- Fixtures are explicitly labelled and refused in production.
+
 ## Caisse212 integration
 
 - **Fail closed in live mode.** If `CAISSE212_MODE=live` and any of
